@@ -1,42 +1,48 @@
-import os
+# entrenar_modelo.py
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
 import pickle
-
-# Ruta segura al archivo CSV (usa raw string)
-ruta_csv = r"C:\Users\PC-01\API\ALGORITMO (SVM)\DATASET_RIOSAVILA_EC1.csv"
-
-# Verificar si el archivo existe
-if not os.path.exists(ruta_csv):
-    print(f"❌ No se encontró el archivo: {ruta_csv}")
-    exit()
+import os
 
 # Cargar dataset
-df = pd.read_csv(ruta_csv)
+df = pd.read_csv(r"C:\Users\PC-01\API\ALGORITMO (SVM)\DATASET_RIOSAVILA_EC1.csv")
 
-# Eliminar columna ID si existe
+
 if "ID" in df.columns:
     df = df.drop("ID", axis=1)
 
-# Separar características y etiqueta
+
 X = df.drop("RESULT", axis=1)
 y = df["RESULT"]
 
-# Escalado
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Escalar datos
 scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-# Modelo SVM
+# Entrenar modelo SVM
 model = SVC()
-model.fit(X_scaled, y)
+model.fit(X_train_scaled, y_train)
 
-# Guardar modelos entrenados
-with open("modelo_entrenado.pkl", "wb") as f:
+# Evaluar precisión
+y_pred = model.predict(X_test_scaled)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"✅ Precisión del modelo SVM: {accuracy:.2%}")
+
+# Crear carpeta 'modelo' si no existe
+os.makedirs("modelo", exist_ok=True)
+
+# Guardar modelo y escalador
+with open("modelo/modelo_entrenado.pkl", "wb") as f:
     pickle.dump(model, f)
 
-with open("escalador.pkl", "wb") as f:
+with open("modelo/escalador.pkl", "wb") as f:
     pickle.dump(scaler, f)
 
-print("✅ Modelo y escalador entrenados correctamente y guardados.")
+print("✅ Modelo SVM y escalador guardados correctamente.")
