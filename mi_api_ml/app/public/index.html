@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Predicción de Riesgo Maternal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #f1f6f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header img {
+      height: 80px;
+      margin-bottom: 10px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .container {
+      max-width: 600px;
+      background: #fff;
+      padding: 25px;
+      margin: 0 auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+    input[type="number"],
+    input[type="range"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #27ae60;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #219150;
+    }
+    .resultado {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e8f5e9;
+      border-left: 5px solid #2ecc71;
+    }
+    .imagenes {
+      margin-top: 30px;
+      text-align: center;
+    }
+    .imagenes img {
+      max-width: 100%;
+      margin: 10px 0;
+      border-radius: 10px;
+    }
+    select {
+      margin-top: 15px;
+      padding: 8px;
+      width: 100%;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="/public/images/logo.png" alt="Logo del Proyecto">
+    <h1 id="titulo">Predicción de Riesgo Maternal</h1>
+  </header>
+
+  <div class="container">
+    <label for="lang">Language / Idioma</label>
+    <select id="lang" onchange="changeLanguage()">
+      <option value="es">Español</option>
+      <option value="en">English</option>
+    </select>
+
+    <form id="formulario">
+      <label id="labelAge" for="Age">Edad</label>
+      <input type="number" id="Age" name="Age" min="10" max="60" required>
+
+      <label id="labelSystolic" for="SystolicBP">Presión Sistólica</label>
+      <input type="number" id="SystolicBP" name="SystolicBP" min="80" max="200" required>
+
+      <label id="labelDiastolic" for="DiastolicBP">Presión Diastólica</label>
+      <input type="number" id="DiastolicBP" name="DiastolicBP" min="40" max="130" required>
+
+      <label id="labelBS" for="BS">Nivel de Glucosa (BS)</label>
+      <input type="number" id="BS" name="BS" step="0.01" min="5" max="20" required>
+
+      <label id="labelTemp" for="BodyTemp">Temperatura Corporal (&#8457;)</label>
+      <input type="number" id="BodyTemp" name="BodyTemp" step="0.1" min="95" max="105" required>
+
+      <label id="labelHR" for="HeartRate">Frecuencia Cardíaca: <span id="hrValue">80</span> bpm</label>
+      <input type="range" id="HeartRate" name="HeartRate" min="60" max="100" value="80" oninput="document.getElementById('hrValue').innerText = this.value">
+
+      <button type="submit" id="submitBtn">Predecir Riesgo</button>
+    </form>
+
+    <div id="resultado" class="resultado" style="display:none;"></div>
+
+    <div class="imagenes">
+      <img src="/public/images/maternal-care.jpg" alt="Cuidados Maternos">
+    </div>
+  </div>
+
+  <script>
+    function changeLanguage() {
+      const lang = document.getElementById('lang').value;
+      const labelsEs = {
+        titulo: "Predicción de Riesgo Maternal",
+        labelAge: "Edad",
+        labelSystolic: "Presión Sistólica",
+        labelDiastolic: "Presión Diastólica",
+        labelBS: "Nivel de Glucosa (BS)",
+        labelTemp: "Temperatura Corporal (℉)",
+        labelHR: "Frecuencia Cardíaca: ",
+        submitBtn: "Predecir Riesgo"
+      };
+
+      const labelsEn = {
+        titulo: "Maternal Risk Prediction",
+        labelAge: "Age",
+        labelSystolic: "Systolic Blood Pressure",
+        labelDiastolic: "Diastolic Blood Pressure",
+        labelBS: "Blood Sugar Level (BS)",
+        labelTemp: "Body Temperature (℉)",
+        labelHR: "Heart Rate: ",
+        submitBtn: "Predict Risk"
+      };
+
+      const labels = lang === 'es' ? labelsEs : labelsEn;
+
+      document.getElementById('titulo').innerText = labels.titulo;
+      document.getElementById('labelAge').innerText = labels.labelAge;
+      document.getElementById('labelSystolic').innerText = labels.labelSystolic;
+      document.getElementById('labelDiastolic').innerText = labels.labelDiastolic;
+      document.getElementById('labelBS').innerText = labels.labelBS;
+      document.getElementById('labelTemp').innerText = labels.labelTemp;
+      document.getElementById('labelHR').innerHTML = `${labels.labelHR}<span id="hrValue">${document.getElementById('HeartRate').value}</span> bpm`;
+      document.getElementById('submitBtn').innerText = labels.submitBtn;
+    }
+
+    document.getElementById('formulario').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      let temp = parseFloat(document.getElementById('BodyTemp').value);
+      if (document.getElementById('lang').value === 'es') {
+        // Convertir Fahrenheit a Celsius para mostrarlo
+        temp = ((temp - 32) * 5 / 9).toFixed(1);
+      }
+
+      const data = {
+        Age: parseInt(document.getElementById('Age').value),
+        SystolicBP: parseInt(document.getElementById('SystolicBP').value),
+        DiastolicBP: parseInt(document.getElementById('DiastolicBP').value),
+        BS: parseFloat(document.getElementById('BS').value),
+        BodyTemp: parseFloat(document.getElementById('BodyTemp').value),
+        HeartRate: parseInt(document.getElementById('HeartRate').value)
+      };
+
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      const div = document.getElementById('resultado');
+
+      const metricas = {
+        1: "Precisión: 85% | Recall: 84% | F1: 84%",
+        2: "Precisión: 80% | Recall: 83% | F1: 82%",
+        3: "Precisión: 90% | Recall: 86% | F1: 88%"
+      };
+
+      if (result.predicción) {
+        div.innerHTML = `<strong>Riesgo:</strong> ${result.predicción}<br><strong>Valor numérico:</strong> ${result.valor_numérico}<br><strong>Métricas del modelo:</strong> ${metricas[result.valor_numérico] || '-'}`;
+      } else {
+        div.innerHTML = `<strong>Error:</strong> ${result.error}`;
+      }
+      div.style.display = 'block';
+    });
+  </script>
+</body>
+</html>
+
+
+

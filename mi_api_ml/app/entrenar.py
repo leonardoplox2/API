@@ -1,48 +1,40 @@
-# entrenar_modelo.py
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
 import pickle
-import os
 
-# Cargar dataset
-df = pd.read_csv(r"C:\Users\PC-01\API\ALGORITMO (SVM)\DATASET_RIOSAVILA_EC1.csv")
+# 1. Cargar el dataset
+dataframe = pd.read_csv('Data_limpia_Maternal_Risk_base_de_datos.csv', sep=',')
 
+# 2. Limpiar datos: quitar infinitos y NaNs
+dataframe.replace([np.inf, -np.inf], np.nan, inplace=True)
+dataframe.dropna(inplace=True)
 
-if "ID" in df.columns:
-    df = df.drop("ID", axis=1)
+# 3. No es necesario mapear, ya que 'RiskLevel' ya contiene valores numéricos
+# Si quisieras, aquí puedes verificar la columna 'RiskLevel'
+print("Valores únicos en 'RiskLevel':", dataframe['RiskLevel'].unique())
 
+# 4. Separar variables independientes y dependiente
+X = dataframe.drop('RiskLevel', axis=1)
+y = dataframe['RiskLevel']
 
-X = df.drop("RESULT", axis=1)
-y = df["RESULT"]
+# 5. División en entrenamiento y prueba
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=25)
 
+# 6. Entrenamiento del modelo
+modelo = RandomForestClassifier(n_estimators=80, random_state=42)
+modelo.fit(X_train, y_train)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# 7. Evaluación del modelo
+y_pred = modelo.predict(X_test)
+print("\n📊 Reporte de clasificación:\n")
+print(classification_report(y_test, y_pred, target_names=['Bajo', 'Intermedio', 'Alto']))
 
-# Escalar datos
-scaler = StandardScaler()
-X_train_scaled = scaler.fit_transform(X_train)
-X_test_scaled = scaler.transform(X_test)
+# 8. Guardar el modelo entrenado
+with open('modelo_entrenado.pkl', 'wb') as archivo_salida:
+    pickle.dump(modelo, archivo_salida, protocol=pickle.HIGHEST_PROTOCOL)
 
-# Entrenar modelo SVM
-model = SVC()
-model.fit(X_train_scaled, y_train)
+print("\n✅ Modelo entrenado y guardado exitosamente como 'modelo_entrenado.pkl'")
 
-# Evaluar precisión
-y_pred = model.predict(X_test_scaled)
-accuracy = accuracy_score(y_test, y_pred)
-print(f"✅ Precisión del modelo SVM: {accuracy:.2%}")
-
-# Crear carpeta 'modelo' si no existe
-os.makedirs("modelo", exist_ok=True)
-
-# Guardar modelo y escalador
-with open("modelo/modelo_entrenado.pkl", "wb") as f:
-    pickle.dump(model, f)
-
-with open("modelo/escalador.pkl", "wb") as f:
-    pickle.dump(scaler, f)
-
-print("✅ Modelo SVM y escalador guardados correctamente.")
