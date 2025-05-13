@@ -39,12 +39,16 @@
       font-weight: 600;
     }
     input[type="number"],
-    input[type="range"] {
-      width: 100%;
+    select {
+      width: 20%;
       padding: 8px;
       margin-top: 5px;
       border-radius: 5px;
       border: 1px solid #ccc;
+    }
+    input[type="range"] {
+      width: 100%;
+      margin-top: 5px;
     }
     button {
       background: #27ae60;
@@ -74,13 +78,6 @@
       max-width: 100%;
       margin: 10px 0;
       border-radius: 10px;
-    }
-    select {
-      margin-top: 15px;
-      padding: 8px;
-      width: 100%;
-      border-radius: 5px;
-      border: 1px solid #ccc;
     }
     .temp-toggle {
       display: flex;
@@ -131,6 +128,9 @@
       <input type="range" id="HeartRate" name="HeartRate" min="60" max="100" value="80" oninput="document.getElementById('hrValue').innerText = this.value">
 
       <button type="submit" id="submitBtn">Predecir Riesgo</button>
+
+      <!-- NUEVO BOTÓN DE LIMPIEZA -->
+      <button type="button" onclick="limpiarFormulario()" style="background:#c0392b; margin-top: 10px;">Limpieza de Datos</button>
     </form>
 
     <div class="accuracy-info" id="accuracyDisplay">Exactitud del modelo: 87%</div>
@@ -141,8 +141,6 @@
       <img src="/public/images/maternal-care.jpg" alt="Cuidados Maternos">
     </div>
   </div>
-
- <!-- ... (toda la parte inicial permanece igual, hasta llegar al script) -->
 
 <script>
   let isCelsius = false;
@@ -212,6 +210,18 @@
     button.textContent = isCelsius ? "Usar °F" : "Usar °C";
   }
 
+  function limpiarFormulario() {
+    document.getElementById('formulario').reset();
+    document.getElementById('resultado').style.display = 'none';
+    document.getElementById('hrValue').innerText = document.getElementById('HeartRate').value;
+
+    // Si la temperatura estaba en °C, volver a °F
+    if (isCelsius) toggleTemp();
+
+    // Actualizar etiquetas al idioma actual
+    changeLanguage();
+  }
+
   document.getElementById('formulario').addEventListener('submit', async function(event) {
     event.preventDefault();
 
@@ -247,3 +257,5 @@
     div.style.display = 'block';
   });
 </script>
+</body>
+</html>
