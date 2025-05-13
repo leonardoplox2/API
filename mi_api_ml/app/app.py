@@ -8,8 +8,12 @@ import threading
 app = Flask(__name__)
 
 # Cargar el modelo entrenado
-with open('modelo_entrenado.pkl', 'rb') as archivo_modelo:
+with open('modelo_entrenado_v2.pkl', 'rb') as archivo_modelo:
     modelo = pickle.load(archivo_modelo)
+
+# Cargar el scaler usado durante el entrenamiento
+with open('scaler_v2.pkl', 'rb') as archivo_scaler:
+    scaler = pickle.load(archivo_scaler)
 
 # Página de bienvenida
 @app.route('/')
@@ -38,8 +42,11 @@ def predict():
         if not all(col in input_data.columns for col in expected_columns):
             return jsonify({'error': '❌ Las columnas de entrada no coinciden con las esperadas.'}), 400
 
+        # Escalar los datos antes de predecir
+        input_scaled = scaler.transform(input_data[expected_columns])
+
         # Predicción
-        prediction = modelo.predict(input_data)[0]
+        prediction = modelo.predict(input_scaled)[0]
 
         # Interpretación
         if prediction == 1:
@@ -65,12 +72,10 @@ def iniciar_app():
 
 # Iniciar el servidor Flask en un hilo y abrir el navegador
 if __name__ == '__main__':
-    # Crear un hilo para ejecutar el servidor Flask
     thread = threading.Thread(target=iniciar_app)
     thread.start()
-
-    # Abrir el navegador automáticamente en la URL
     webbrowser.open("http://127.0.0.1:5000/")
+
 
 
 

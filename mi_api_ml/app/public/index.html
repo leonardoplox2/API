@@ -82,6 +82,17 @@
       border-radius: 5px;
       border: 1px solid #ccc;
     }
+    .temp-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .accuracy-info {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #2980b9;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -111,13 +122,18 @@
       <input type="number" id="BS" name="BS" step="0.01" min="5" max="20" required>
 
       <label id="labelTemp" for="BodyTemp">Temperatura Corporal (&#8457;)</label>
-      <input type="number" id="BodyTemp" name="BodyTemp" step="0.1" min="95" max="105" required>
+      <div class="temp-toggle">
+        <input type="number" id="BodyTemp" name="BodyTemp" step="0.1" min="95" max="105" required>
+        <button type="button" onclick="toggleTemp()" style="padding:6px 10px; font-size: 12px;">Usar °C</button>
+      </div>
 
       <label id="labelHR" for="HeartRate">Frecuencia Cardíaca: <span id="hrValue">80</span> bpm</label>
       <input type="range" id="HeartRate" name="HeartRate" min="60" max="100" value="80" oninput="document.getElementById('hrValue').innerText = this.value">
 
       <button type="submit" id="submitBtn">Predecir Riesgo</button>
     </form>
+
+    <div class="accuracy-info" id="accuracyDisplay">Exactitud del modelo: 87%</div>
 
     <div id="resultado" class="resultado" style="display:none;"></div>
 
@@ -126,86 +142,108 @@
     </div>
   </div>
 
-  <script>
-    function changeLanguage() {
-      const lang = document.getElementById('lang').value;
-      const labelsEs = {
-        titulo: "Predicción de Riesgo Maternal",
-        labelAge: "Edad",
-        labelSystolic: "Presión Sistólica",
-        labelDiastolic: "Presión Diastólica",
-        labelBS: "Nivel de Glucosa (BS)",
-        labelTemp: "Temperatura Corporal (℉)",
-        labelHR: "Frecuencia Cardíaca: ",
-        submitBtn: "Predecir Riesgo"
-      };
+ <!-- ... (toda la parte inicial permanece igual, hasta llegar al script) -->
 
-      const labelsEn = {
-        titulo: "Maternal Risk Prediction",
-        labelAge: "Age",
-        labelSystolic: "Systolic Blood Pressure",
-        labelDiastolic: "Diastolic Blood Pressure",
-        labelBS: "Blood Sugar Level (BS)",
-        labelTemp: "Body Temperature (℉)",
-        labelHR: "Heart Rate: ",
-        submitBtn: "Predict Risk"
-      };
+<script>
+  let isCelsius = false;
 
-      const labels = lang === 'es' ? labelsEs : labelsEn;
+  function changeLanguage() {
+    const lang = document.getElementById('lang').value;
+    const labelsEs = {
+      titulo: "Predicción de Riesgo Maternal",
+      labelAge: "Edad",
+      labelSystolic: "Presión Sistólica",
+      labelDiastolic: "Presión Diastólica",
+      labelBS: "Nivel de Glucosa (BS)",
+      labelTemp: "Temperatura Corporal (℉)",
+      labelTempC: "Temperatura Corporal (℃)",
+      labelHR: "Frecuencia Cardíaca: ",
+      submitBtn: "Predecir Riesgo"
+    };
 
-      document.getElementById('titulo').innerText = labels.titulo;
-      document.getElementById('labelAge').innerText = labels.labelAge;
-      document.getElementById('labelSystolic').innerText = labels.labelSystolic;
-      document.getElementById('labelDiastolic').innerText = labels.labelDiastolic;
-      document.getElementById('labelBS').innerText = labels.labelBS;
-      document.getElementById('labelTemp').innerText = labels.labelTemp;
-      document.getElementById('labelHR').innerHTML = `${labels.labelHR}<span id="hrValue">${document.getElementById('HeartRate').value}</span> bpm`;
-      document.getElementById('submitBtn').innerText = labels.submitBtn;
+    const labelsEn = {
+      titulo: "Maternal Risk Prediction",
+      labelAge: "Age",
+      labelSystolic: "Systolic Blood Pressure",
+      labelDiastolic: "Diastolic Blood Pressure",
+      labelBS: "Blood Sugar Level (BS)",
+      labelTemp: "Body Temperature (℉)",
+      labelTempC: "Body Temperature (℃)",
+      labelHR: "Heart Rate: ",
+      submitBtn: "Predict Risk"
+    };
+
+    const labels = lang === 'es' ? labelsEs : labelsEn;
+
+    document.getElementById('titulo').innerText = labels.titulo;
+    document.getElementById('labelAge').innerText = labels.labelAge;
+    document.getElementById('labelSystolic').innerText = labels.labelSystolic;
+    document.getElementById('labelDiastolic').innerText = labels.labelDiastolic;
+    document.getElementById('labelBS').innerText = labels.labelBS;
+    document.getElementById('labelTemp').innerText = isCelsius ? labels.labelTempC : labels.labelTemp;
+    document.getElementById('labelHR').innerHTML = `${labels.labelHR}<span id="hrValue">${document.getElementById('HeartRate').value}</span> bpm`;
+    document.getElementById('submitBtn').innerText = labels.submitBtn;
+  }
+
+  function toggleTemp() {
+    const input = document.getElementById('BodyTemp');
+    const button = document.querySelector('.temp-toggle button');
+    let value = parseFloat(input.value);
+
+    if (!isNaN(value)) {
+      if (isCelsius) {
+        value = (value * 9 / 5) + 32;
+        input.value = value.toFixed(1);
+        input.min = 95;
+        input.max = 105;
+      } else {
+        value = (value - 32) * 5 / 9;
+        input.value = value.toFixed(1);
+        input.min = 35;
+        input.max = 40.5;
+      }
     }
 
-    document.getElementById('formulario').addEventListener('submit', async function(event) {
-      event.preventDefault();
+    isCelsius = !isCelsius;
+    const lang = document.getElementById('lang').value;
+    document.getElementById('labelTemp').innerText = isCelsius
+      ? (lang === 'es' ? "Temperatura Corporal (℃)" : "Body Temperature (℃)")
+      : (lang === 'es' ? "Temperatura Corporal (℉)" : "Body Temperature (℉)");
+    button.textContent = isCelsius ? "Usar °F" : "Usar °C";
+  }
 
-      let temp = parseFloat(document.getElementById('BodyTemp').value);
-      if (document.getElementById('lang').value === 'es') {
-        // Convertir Fahrenheit a Celsius para mostrarlo
-        temp = ((temp - 32) * 5 / 9).toFixed(1);
-      }
+  document.getElementById('formulario').addEventListener('submit', async function(event) {
+    event.preventDefault();
 
-      const data = {
-        Age: parseInt(document.getElementById('Age').value),
-        SystolicBP: parseInt(document.getElementById('SystolicBP').value),
-        DiastolicBP: parseInt(document.getElementById('DiastolicBP').value),
-        BS: parseFloat(document.getElementById('BS').value),
-        BodyTemp: parseFloat(document.getElementById('BodyTemp').value),
-        HeartRate: parseInt(document.getElementById('HeartRate').value)
-      };
+    let temp = parseFloat(document.getElementById('BodyTemp').value);
+    if (isCelsius) {
+      temp = (temp * 9 / 5) + 32;
+    }
 
-      const res = await fetch('/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+    const data = {
+      Age: parseInt(document.getElementById('Age').value),
+      SystolicBP: parseInt(document.getElementById('SystolicBP').value),
+      DiastolicBP: parseInt(document.getElementById('DiastolicBP').value),
+      BS: parseFloat(document.getElementById('BS').value),
+      BodyTemp: temp,
+      HeartRate: parseInt(document.getElementById('HeartRate').value)
+    };
 
-      const result = await res.json();
-      const div = document.getElementById('resultado');
-
-      const metricas = {
-        1: "Precisión: 85% | Recall: 84% | F1: 84%",
-        2: "Precisión: 80% | Recall: 83% | F1: 82%",
-        3: "Precisión: 90% | Recall: 86% | F1: 88%"
-      };
-
-      if (result.predicción) {
-        div.innerHTML = `<strong>Riesgo:</strong> ${result.predicción}<br><strong>Valor numérico:</strong> ${result.valor_numérico}<br><strong>Métricas del modelo:</strong> ${metricas[result.valor_numérico] || '-'}`;
-      } else {
-        div.innerHTML = `<strong>Error:</strong> ${result.error}`;
-      }
-      div.style.display = 'block';
+    const res = await fetch('/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
-  </script>
-</body>
-</html>
 
+    const result = await res.json();
+    const div = document.getElementById('resultado');
 
+    if (result.predicción) {
+      div.innerHTML = `<strong>Riesgo:</strong> ${result.predicción}<br><strong>Valor numérico:</strong> ${result.valor_numérico}`;
+    } else {
+      div.innerHTML = `<strong>Error:</strong> ${result.error}`;
+    }
 
+    div.style.display = 'block';
+  });
+</script>
