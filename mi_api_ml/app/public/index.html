@@ -90,6 +90,10 @@
       color: #2980b9;
       text-align: center;
     }
+    .pdf-button {
+      background: #8e44ad;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -106,6 +110,9 @@
     </select>
 
     <form id="formulario">
+      <label id="labelName" for="Name">Nombre</label>
+      <input type="text" id="Name" name="Name" required>
+
       <label id="labelAge" for="Age">Edad</label>
       <input type="number" id="Age" name="Age" min="10" max="60" required>
 
@@ -128,13 +135,11 @@
       <input type="range" id="HeartRate" name="HeartRate" min="60" max="100" value="80" oninput="document.getElementById('hrValue').innerText = this.value">
 
       <button type="submit" id="submitBtn">Predecir Riesgo</button>
-
-      <!-- NUEVO BOTÓN DE LIMPIEZA -->
       <button type="button" onclick="limpiarFormulario()" style="background:#c0392b; margin-top: 10px;">Limpieza de Datos</button>
+      <button type="button" class="pdf-button" onclick="descargarPDF()">Exportar como PDF</button>
     </form>
 
     <div class="accuracy-info" id="accuracyDisplay">Exactitud del modelo: 85%</div>
-
     <div id="resultado" class="resultado" style="display:none;"></div>
 
     <div class="imagenes">
@@ -142,6 +147,7 @@
     </div>
   </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   let isCelsius = false;
 
@@ -149,6 +155,7 @@
     const lang = document.getElementById('lang').value;
     const labelsEs = {
       titulo: "Predicción de Riesgo Maternal",
+      labelName: "Nombre",
       labelAge: "Edad",
       labelSystolic: "Presión Sistólica",
       labelDiastolic: "Presión Diastólica",
@@ -158,9 +165,9 @@
       labelHR: "Frecuencia Cardíaca: ",
       submitBtn: "Predecir Riesgo"
     };
-
     const labelsEn = {
       titulo: "Maternal Risk Prediction",
+      labelName: "Name",
       labelAge: "Age",
       labelSystolic: "Systolic Blood Pressure",
       labelDiastolic: "Diastolic Blood Pressure",
@@ -170,10 +177,9 @@
       labelHR: "Heart Rate: ",
       submitBtn: "Predict Risk"
     };
-
     const labels = lang === 'es' ? labelsEs : labelsEn;
-
     document.getElementById('titulo').innerText = labels.titulo;
+    document.getElementById('labelName').innerText = labels.labelName;
     document.getElementById('labelAge').innerText = labels.labelAge;
     document.getElementById('labelSystolic').innerText = labels.labelSystolic;
     document.getElementById('labelDiastolic').innerText = labels.labelDiastolic;
@@ -187,7 +193,6 @@
     const input = document.getElementById('BodyTemp');
     const button = document.querySelector('.temp-toggle button');
     let value = parseFloat(input.value);
-
     if (!isNaN(value)) {
       if (isCelsius) {
         value = (value * 9 / 5) + 32;
@@ -201,12 +206,8 @@
         input.max = 40.5;
       }
     }
-
     isCelsius = !isCelsius;
-    const lang = document.getElementById('lang').value;
-    document.getElementById('labelTemp').innerText = isCelsius
-      ? (lang === 'es' ? "Temperatura Corporal (℃)" : "Body Temperature (℃)")
-      : (lang === 'es' ? "Temperatura Corporal (℉)" : "Body Temperature (℉)");
+    changeLanguage();
     button.textContent = isCelsius ? "Usar °F" : "Usar °C";
   }
 
@@ -214,21 +215,14 @@
     document.getElementById('formulario').reset();
     document.getElementById('resultado').style.display = 'none';
     document.getElementById('hrValue').innerText = document.getElementById('HeartRate').value;
-
-    // Si la temperatura estaba en °C, volver a °F
     if (isCelsius) toggleTemp();
-
-    // Actualizar etiquetas al idioma actual
     changeLanguage();
   }
 
   document.getElementById('formulario').addEventListener('submit', async function(event) {
     event.preventDefault();
-
     let temp = parseFloat(document.getElementById('BodyTemp').value);
-    if (isCelsius) {
-      temp = (temp * 9 / 5) + 32;
-    }
+    if (isCelsius) temp = (temp * 9 / 5) + 32;
 
     const data = {
       Age: parseInt(document.getElementById('Age').value),
@@ -247,15 +241,28 @@
 
     const result = await res.json();
     const div = document.getElementById('resultado');
-
     if (result.predicción) {
-      div.innerHTML = `<strong>Riesgo:</strong> ${result.predicción}<br><strong>Valor numérico:</strong> ${result.valor_numérico}`;
+      div.innerHTML = `<strong>Nombre:</strong> ${document.getElementById('Name').value}<br><strong>Riesgo:</strong> ${result.predicción}<br><strong>Valor numérico:</strong> ${result.valor_numérico}`;
     } else {
       div.innerHTML = `<strong>Error:</strong> ${result.error}`;
     }
-
     div.style.display = 'block';
   });
+
+  async function descargarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const nombre = document.getElementById('Name').value;
+    const resultado = document.getElementById('resultado').innerText;
+    doc.setFontSize(14);
+    doc.text("Reporte de Riesgo Maternal", 20, 20);
+    doc.text(`Nombre: ${nombre}`, 20, 40);
+    doc.text(`Resultado:`, 20, 50);
+    doc.text(resultado, 20, 60);
+    doc.save(`Reporte_Riesgo_${nombre}.pdf`);
+  }
 </script>
 </body>
 </html>
+
+
