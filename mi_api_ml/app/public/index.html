@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Predicción de Riesgo Maternal</title>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;600&display=swap" rel="stylesheet">
+
   <style>
     body {
       font-family: 'Nunito', sans-serif;
@@ -13,18 +14,22 @@
       padding: 20px;
       color: #333;
     }
+
     header {
       text-align: center;
       margin-bottom: 20px;
     }
+
     header img {
       height: 80px;
       margin-bottom: 10px;
     }
+
     h1 {
       text-align: center;
       color: #2c3e50;
     }
+
     .container {
       max-width: 600px;
       background: #fff;
@@ -33,23 +38,28 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
+
     label {
       display: block;
       margin-top: 15px;
       font-weight: 600;
     }
+
     input[type="number"],
-    select {
-      width: 20%;
+    select,
+    input[type="text"] {
+      width: 100%;
       padding: 8px;
       margin-top: 5px;
       border-radius: 5px;
       border: 1px solid #ccc;
     }
+
     input[type="range"] {
       width: 100%;
       margin-top: 5px;
     }
+
     button {
       background: #27ae60;
       color: white;
@@ -61,42 +71,60 @@
       width: 100%;
       font-size: 16px;
     }
+
     button:hover {
       background: #219150;
     }
+
     .resultado {
       margin-top: 20px;
       padding: 15px;
       background: #e8f5e9;
       border-left: 5px solid #2ecc71;
     }
+
     .imagenes {
       margin-top: 30px;
       text-align: center;
     }
+
     .imagenes img {
       max-width: 100%;
       margin: 10px 0;
       border-radius: 10px;
     }
+
     .temp-toggle {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+
     .accuracy-info {
       margin-top: 20px;
       font-weight: bold;
       color: #2980b9;
       text-align: center;
     }
+
     .pdf-button {
       background: #8e44ad;
       margin-top: 10px;
     }
+
+    .grafica {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .grafica img {
+      max-width: 100%;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
+
   <header>
     <img src="/public/images/logo.png" alt="Logo del Proyecto">
     <h1 id="titulo">Predicción de Riesgo Maternal</h1>
@@ -108,6 +136,11 @@
       <option value="es">Español</option>
       <option value="en">English</option>
     </select>
+
+    <!-- Imagen de la gráfica -->
+    <div class="grafica">
+      <img src="/public/images/grafica.png" alt="Gráfica de predicción">
+    </div>
 
     <form id="formulario">
       <label id="labelName" for="Name">Nombre</label>
@@ -147,122 +180,120 @@
     </div>
   </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-  let isCelsius = false;
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    let isCelsius = false;
 
-  function changeLanguage() {
-    const lang = document.getElementById('lang').value;
-    const labelsEs = {
-      titulo: "Predicción de Riesgo Maternal",
-      labelName: "Nombre",
-      labelAge: "Edad",
-      labelSystolic: "Presión Sistólica",
-      labelDiastolic: "Presión Diastólica",
-      labelBS: "Nivel de Glucosa (BS)",
-      labelTemp: "Temperatura Corporal (℉)",
-      labelTempC: "Temperatura Corporal (℃)",
-      labelHR: "Frecuencia Cardíaca: ",
-      submitBtn: "Predecir Riesgo"
-    };
-    const labelsEn = {
-      titulo: "Maternal Risk Prediction",
-      labelName: "Name",
-      labelAge: "Age",
-      labelSystolic: "Systolic Blood Pressure",
-      labelDiastolic: "Diastolic Blood Pressure",
-      labelBS: "Blood Sugar Level (BS)",
-      labelTemp: "Body Temperature (℉)",
-      labelTempC: "Body Temperature (℃)",
-      labelHR: "Heart Rate: ",
-      submitBtn: "Predict Risk"
-    };
-    const labels = lang === 'es' ? labelsEs : labelsEn;
-    document.getElementById('titulo').innerText = labels.titulo;
-    document.getElementById('labelName').innerText = labels.labelName;
-    document.getElementById('labelAge').innerText = labels.labelAge;
-    document.getElementById('labelSystolic').innerText = labels.labelSystolic;
-    document.getElementById('labelDiastolic').innerText = labels.labelDiastolic;
-    document.getElementById('labelBS').innerText = labels.labelBS;
-    document.getElementById('labelTemp').innerText = isCelsius ? labels.labelTempC : labels.labelTemp;
-    document.getElementById('labelHR').innerHTML = `${labels.labelHR}<span id="hrValue">${document.getElementById('HeartRate').value}</span> bpm`;
-    document.getElementById('submitBtn').innerText = labels.submitBtn;
-  }
-
-  function toggleTemp() {
-    const input = document.getElementById('BodyTemp');
-    const button = document.querySelector('.temp-toggle button');
-    let value = parseFloat(input.value);
-    if (!isNaN(value)) {
-      if (isCelsius) {
-        value = (value * 9 / 5) + 32;
-        input.value = value.toFixed(1);
-        input.min = 95;
-        input.max = 105;
-      } else {
-        value = (value - 32) * 5 / 9;
-        input.value = value.toFixed(1);
-        input.min = 35;
-        input.max = 40.5;
-      }
+    function changeLanguage() {
+      const lang = document.getElementById('lang').value;
+      const labelsEs = {
+        titulo: "Predicción de Riesgo Maternal",
+        labelName: "Nombre",
+        labelAge: "Edad",
+        labelSystolic: "Presión Sistólica",
+        labelDiastolic: "Presión Diastólica",
+        labelBS: "Nivel de Glucosa (BS)",
+        labelTemp: "Temperatura Corporal (℉)",
+        labelTempC: "Temperatura Corporal (℃)",
+        labelHR: "Frecuencia Cardíaca: ",
+        submitBtn: "Predecir Riesgo"
+      };
+      const labelsEn = {
+        titulo: "Maternal Risk Prediction",
+        labelName: "Name",
+        labelAge: "Age",
+        labelSystolic: "Systolic Blood Pressure",
+        labelDiastolic: "Diastolic Blood Pressure",
+        labelBS: "Blood Sugar Level (BS)",
+        labelTemp: "Body Temperature (℉)",
+        labelTempC: "Body Temperature (℃)",
+        labelHR: "Heart Rate: ",
+        submitBtn: "Predict Risk"
+      };
+      const labels = lang === 'es' ? labelsEs : labelsEn;
+      document.getElementById('titulo').innerText = labels.titulo;
+      document.getElementById('labelName').innerText = labels.labelName;
+      document.getElementById('labelAge').innerText = labels.labelAge;
+      document.getElementById('labelSystolic').innerText = labels.labelSystolic;
+      document.getElementById('labelDiastolic').innerText = labels.labelDiastolic;
+      document.getElementById('labelBS').innerText = labels.labelBS;
+      document.getElementById('labelTemp').innerText = isCelsius ? labels.labelTempC : labels.labelTemp;
+      document.getElementById('labelHR').innerHTML = `${labels.labelHR}<span id="hrValue">${document.getElementById('HeartRate').value}</span> bpm`;
+      document.getElementById('submitBtn').innerText = labels.submitBtn;
     }
-    isCelsius = !isCelsius;
-    changeLanguage();
-    button.textContent = isCelsius ? "Usar °F" : "Usar °C";
-  }
 
-  function limpiarFormulario() {
-    document.getElementById('formulario').reset();
-    document.getElementById('resultado').style.display = 'none';
-    document.getElementById('hrValue').innerText = document.getElementById('HeartRate').value;
-    if (isCelsius) toggleTemp();
-    changeLanguage();
-  }
+    function toggleTemp() {
+      const input = document.getElementById('BodyTemp');
+      const button = document.querySelector('.temp-toggle button');
+      let value = parseFloat(input.value);
+      if (!isNaN(value)) {
+        if (isCelsius) {
+          value = (value * 9 / 5) + 32;
+          input.value = value.toFixed(1);
+          input.min = 95;
+          input.max = 105;
+        } else {
+          value = (value - 32) * 5 / 9;
+          input.value = value.toFixed(1);
+          input.min = 35;
+          input.max = 40.5;
+        }
+      }
+      isCelsius = !isCelsius;
+      changeLanguage();
+      button.textContent = isCelsius ? "Usar °F" : "Usar °C";
+    }
 
-  document.getElementById('formulario').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    let temp = parseFloat(document.getElementById('BodyTemp').value);
-    if (isCelsius) temp = (temp * 9 / 5) + 32;
+    function limpiarFormulario() {
+      document.getElementById('formulario').reset();
+      document.getElementById('resultado').style.display = 'none';
+      document.getElementById('hrValue').innerText = document.getElementById('HeartRate').value;
+      if (isCelsius) toggleTemp();
+      changeLanguage();
+    }
 
-    const data = {
-      Age: parseInt(document.getElementById('Age').value),
-      SystolicBP: parseInt(document.getElementById('SystolicBP').value),
-      DiastolicBP: parseInt(document.getElementById('DiastolicBP').value),
-      BS: parseFloat(document.getElementById('BS').value),
-      BodyTemp: temp,
-      HeartRate: parseInt(document.getElementById('HeartRate').value)
-    };
+    document.getElementById('formulario').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      let temp = parseFloat(document.getElementById('BodyTemp').value);
+      if (isCelsius) temp = (temp * 9 / 5) + 32;
 
-    const res = await fetch('/predict', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      const data = {
+        Age: parseInt(document.getElementById('Age').value),
+        SystolicBP: parseInt(document.getElementById('SystolicBP').value),
+        DiastolicBP: parseInt(document.getElementById('DiastolicBP').value),
+        BS: parseFloat(document.getElementById('BS').value),
+        BodyTemp: temp,
+        HeartRate: parseInt(document.getElementById('HeartRate').value)
+      };
+
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      const div = document.getElementById('resultado');
+      if (result.predicción) {
+        div.innerHTML = `<strong>Nombre:</strong> ${document.getElementById('Name').value}<br><strong>Riesgo:</strong> ${result.predicción}<br><strong>Valor numérico:</strong> ${result.valor_numérico}`;
+      } else {
+        div.innerHTML = `<strong>Error:</strong> ${result.error}`;
+      }
+      div.style.display = 'block';
     });
 
-    const result = await res.json();
-    const div = document.getElementById('resultado');
-    if (result.predicción) {
-      div.innerHTML = `<strong>Nombre:</strong> ${document.getElementById('Name').value}<br><strong>Riesgo:</strong> ${result.predicción}<br><strong>Valor numérico:</strong> ${result.valor_numérico}`;
-    } else {
-      div.innerHTML = `<strong>Error:</strong> ${result.error}`;
+    async function descargarPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const nombre = document.getElementById('Name').value;
+      const resultado = document.getElementById('resultado').innerText;
+      doc.setFontSize(14);
+      doc.text("Reporte de Riesgo Maternal", 20, 20);
+      doc.text(`Nombre: ${nombre}`, 20, 40);
+      doc.text(`Resultado:`, 20, 50);
+      doc.text(resultado, 20, 60);
+      doc.save(`Reporte_Riesgo_${nombre}.pdf`);
     }
-    div.style.display = 'block';
-  });
-
-  async function descargarPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const nombre = document.getElementById('Name').value;
-    const resultado = document.getElementById('resultado').innerText;
-    doc.setFontSize(14);
-    doc.text("Reporte de Riesgo Maternal", 20, 20);
-    doc.text(`Nombre: ${nombre}`, 20, 40);
-    doc.text(`Resultado:`, 20, 50);
-    doc.text(resultado, 20, 60);
-    doc.save(`Reporte_Riesgo_${nombre}.pdf`);
-  }
-</script>
+  </script>
 </body>
 </html>
-
-
