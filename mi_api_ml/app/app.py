@@ -44,9 +44,9 @@ def predict():
         input_scaled = scaler.transform(input_df)
 
         # Predicción
-        prediction = modelo.predict(input_scaled)[0]
+        prediction = int(modelo.predict(input_scaled)[0])
 
-        # Interpretación de riesgo
+        # Interpretación de riesgo y sugerencias
         if prediction == 1:
             resultado = 'Bajo riesgo'
             sugerencias = '✅ Todo está correcto. ¡Sigue con tus hábitos saludables!'
@@ -60,12 +60,12 @@ def predict():
             resultado = 'Desconocido'
             sugerencias = 'No se pudo determinar una recomendación.'
 
-        # Importancia de las variables (real o simulada)
+        # Importancia de las variables
         try:
             importancia_cruda = modelo.feature_importances_
             columnas = ['Edad', 'Presión Sistólica', 'Presión Diastólica', 'Glucosa', 'Temperatura Corporal', 'Frecuencia Cardíaca']
             importancias = {
-                nombre: f"{(valor * 100):.2f}%" 
+                nombre: f"{(valor * 100):.2f}%"
                 for nombre, valor in zip(columnas, importancia_cruda)
             }
         except AttributeError:
@@ -82,7 +82,7 @@ def predict():
         return jsonify({
             'nombre': nombre,
             'predicción': resultado,
-            'valor_numérico': int(prediction),
+            'valor_numérico': prediction,
             'sugerencias': sugerencias,
             'importancias': importancias
         })
@@ -98,5 +98,6 @@ if __name__ == '__main__':
     thread = threading.Thread(target=iniciar_app)
     thread.start()
     webbrowser.open("http://127.0.0.1:5000/")
+
 
 
